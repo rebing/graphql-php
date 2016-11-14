@@ -450,6 +450,8 @@ class Executor
         // or abrupt (error).
         $result = self::resolveOrError($resolveFn, $source, $args, $context, $info);
 
+        dd('k');
+
         $result = self::completeValueCatchingError(
             $exeContext,
             $returnType,
