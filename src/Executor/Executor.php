@@ -22,6 +22,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\DefinitionContainer;
 use GraphQL\Type\Introspection;
 use GraphQL\Utils;
+use Illuminate\Pagination\AbstractPaginator;
 
 /**
  * Terminology
@@ -450,7 +451,17 @@ class Executor
         // or abrupt (error).
         $result = self::resolveOrError($resolveFn, $source, $args, $context, $info);
 
-        dd('k');
+        $pagination = null;
+        if(is_a($result, AbstractPaginator::class))
+        {
+            $pagination = [
+                'total'         => $result->total(),
+                'per_page'      => $result->perPage(),
+                'current_page'  => $result->currentPage(),
+                'from'          => $result->firstItem(),
+                'to'            => $result->lastItem(),
+            ];
+        }
 
         $result = self::completeValueCatchingError(
             $exeContext,
@@ -460,6 +471,20 @@ class Executor
             $path,
             $result
         );
+
+        if(is_null($source))
+        {
+            $data = [
+                'data'  => $result,
+            ];
+
+            if($pagination)
+            {
+                $data['pagination'] = $pagination;
+            }
+
+            return $data;
+        }
 
         return $result;
     }
