@@ -41,6 +41,9 @@ use GraphQL\Type\Introspection;
  */
 class Schema
 {
+    // If Queries or Mutations are extended, then enums inside them don't work
+    const IGNORE_UTIL_ENUM_ERROR = 'IGNORE THIS ENUM ERROR';
+
     /**
      * @var ObjectType
      */
@@ -321,10 +324,19 @@ class Schema
         }
 
         if (!empty($this->typeMap[$type->name])) {
-            Utils::invariant(
-                $this->typeMap[$type->name] === $type,
-                "Schema must contain unique named types but contains multiple types named \"$type\"."
-            );
+            try {
+                Utils::invariant(
+                    $this->typeMap[$type->name] === $type,
+                    "Schema must contain unique named types but contains multiple types named \"$type\"."
+                );
+            }
+            catch (\Exception $e)
+            {
+                if($type->description !== self::IGNORE_UTIL_ENUM_ERROR)
+                {
+                    throw $e;
+                }
+            }
             return $this->typeMap;
         }
         $this->typeMap[$type->name] = $type;
