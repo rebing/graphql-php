@@ -472,18 +472,9 @@ class Executor
             $result
         );
 
-        if(is_null($source))
+        if($pagination)
         {
-            $data = [
-                'data'  => $result,
-            ];
-
-            if($pagination)
-            {
-                $data['pagination'] = $pagination;
-            }
-
-            return $data;
+            $result['pagination'] = $pagination;
         }
 
         return $result;
