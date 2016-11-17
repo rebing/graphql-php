@@ -49,6 +49,8 @@ class Executor
 
     private static $defaultResolveFn = [__CLASS__, 'defaultResolveFn'];
 
+    private static $pagination;
+
     /**
      * Custom default resolve function
      *
@@ -93,6 +95,11 @@ class Executor
 
         try {
             $data = self::executeOperation($exeContext, $exeContext->operation, $rootValue);
+
+            if(self::$pagination)
+            {
+                $data['pagination'] = self::$pagination;
+            }
         } catch (Error $e) {
             $exeContext->addError($e);
             $data = null;
@@ -451,10 +458,9 @@ class Executor
         // or abrupt (error).
         $result = self::resolveOrError($resolveFn, $source, $args, $context, $info);
 
-        $pagination = null;
         if(is_a($result, AbstractPaginator::class))
         {
-            $pagination = [
+            self::$pagination = [
                 'total'         => $result->total(),
                 'per_page'      => $result->perPage(),
                 'current_page'  => $result->currentPage(),
@@ -471,11 +477,6 @@ class Executor
             $path,
             $result
         );
-
-        if($pagination)
-        {
-            $result['pagination'] = $pagination;
-        }
 
         return $result;
     }
