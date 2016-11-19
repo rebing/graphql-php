@@ -22,7 +22,6 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\DefinitionContainer;
 use GraphQL\Type\Introspection;
 use GraphQL\Utils;
-use Illuminate\Pagination\AbstractPaginator;
 
 /**
  * Terminology
@@ -48,8 +47,6 @@ class Executor
     private static $UNDEFINED;
 
     private static $defaultResolveFn = [__CLASS__, 'defaultResolveFn'];
-
-    private static $pagination;
 
     /**
      * Custom default resolve function
@@ -95,11 +92,6 @@ class Executor
 
         try {
             $data = self::executeOperation($exeContext, $exeContext->operation, $rootValue);
-
-            if(self::$pagination)
-            {
-                $data['pagination'] = self::$pagination;
-            }
         } catch (Error $e) {
             $exeContext->addError($e);
             $data = null;
@@ -457,17 +449,6 @@ class Executor
         // Get the resolve function, regardless of if its result is normal
         // or abrupt (error).
         $result = self::resolveOrError($resolveFn, $source, $args, $context, $info);
-
-        if(is_a($result, AbstractPaginator::class))
-        {
-            self::$pagination = [
-                'total'         => $result->total(),
-                'per_page'      => $result->perPage(),
-                'current_page'  => $result->currentPage(),
-                'from'          => $result->firstItem(),
-                'to'            => $result->lastItem(),
-            ];
-        }
 
         $result = self::completeValueCatchingError(
             $exeContext,
